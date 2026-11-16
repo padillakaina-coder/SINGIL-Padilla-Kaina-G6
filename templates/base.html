@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SINGIL</title>
+  <style>
+    body{font-family:Arial,sans-serif;max-width:720px;margin:0 auto;padding:16px;color:#222}
+    nav{display:flex;gap:14px;align-items:center;border-bottom:1px solid #ddd;padding-bottom:10px;margin-bottom:16px}
+    nav form{margin:0 0 0 auto}
+    .msg{padding:10px;border-radius:6px;margin:8px 0}
+    .success{background:#e6f4ea;color:#1e6b34}.error{background:#fdecea;color:#a12622}
+    .errorlist{color:#a12622;list-style:none;padding:0;margin:2px 0}
+    input{display:block;width:100%;padding:8px;margin:4px 0 10px;box-sizing:border-box}
+    button{padding:8px 16px;cursor:pointer}
+    table{width:100%;border-collapse:collapse}td,th{border-bottom:1px solid #eee;padding:6px;text-align:left}
+  </style>
+</head>
+<body>
+<nav>
+  <strong>SINGIL</strong>
+  {% if user.is_authenticated %}
+    <a href="{% url 'dashboard' %}">Dashboard</a>
+    <a href="{% url 'profile' %}">Profile</a>
+    <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button>Logout</button></form>
+  {% else %}
+    <a href="{% url 'login' %}">Login</a>
+    <a href="{% url 'register' %}">Register</a>
+  {% endif %}
+</nav>
+{% for m in messages %}<div class="msg {{ m.tags }}">{{ m }}</div>{% endfor %}
+{% block content %}{% endblock %}
+</body>
+</html>

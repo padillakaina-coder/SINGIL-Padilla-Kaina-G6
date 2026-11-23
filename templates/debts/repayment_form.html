@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Record Repayment</h2>
+<p>{{ transaction.person.person_name }} — remaining balance:
+   <strong>₱{{ transaction.remaining_balance|floatformat:2 }}</strong></p>
+<form method="post">{% csrf_token %}
+  {{ form.non_field_errors }}
+  {% for field in form %}
+    <label>{{ field.label }}</label>{{ field }}{{ field.errors }}
+  {% endfor %}
+  <button type="submit">Save repayment</button>
+  <a href="{% url 'transaction_detail' transaction.pk %}">Cancel</a>
+</form>
+{% endblock %}

@@ -1,3 +1,4 @@
+
 from datetime import timedelta
 from decimal import Decimal
 
@@ -89,3 +90,30 @@ class Transaction(models.Model):
 def refresh_statuses(queryset):
     for t in queryset.select_related('status'):
         t.refresh_status()
+
+
+        
+
+class Repayment(models.Model):
+    FULL = 'FULL'
+    PARTIAL = 'PARTIAL'
+    TYPE_CHOICES = [(FULL, 'Full'), (PARTIAL, 'Partial')]
+
+    transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE, related_name='repayments')  # BR-29
+    amount_paid = models.DecimalField(
+        max_digits=12, decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))],
+    )
+    payment_date = models.DateField()
+    payment_type = models.CharField(max_length=7, choices=TYPE_CHOICES)
+    notes = models.CharField(max_length=255, blank=True)
+    recorded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-payment_date', '-recorded_at']
+
+    def __str__(self):
+        return f'{self.amount_paid} on {self.payment_date}'
+
+
+

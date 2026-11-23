@@ -1,8 +1,7 @@
 from django import forms
 from django.utils import timezone
 
-from .models import Person, Transaction
-
+from .models import Person, Transaction, Repayment
 
 class PersonForm(forms.ModelForm):
     class Meta:
@@ -56,4 +55,34 @@ class TransactionForm(forms.ModelForm):
             if paid > 0 and direction and direction != self.instance.direction:  # BR-07
                 self.add_error('direction',
                                'The direction cannot be changed after a repayment has been recorded.')
+        return data
+    
+    class RepaymentForm(forms.ModelForm):
+    class Meta:
+        model = Repayment
+        fields = ('amount_paid', 'payment_date', 'notes')
+        widgets = {
+            'payment_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
+        }
+
+    def __init__(self, *args, transaction=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.transaction = transaction
+
+    def clean(self):
+        data = super().clean()
+        amount = data.get('amount_paid')
+        pdate = data.get('payment_date')
+        t = self.transaction
+
+        if t.remaining_balance <= 0:  # BR-16
+            raise forms.ValidationError('This transaction is already fully paid.')
+        if amount is not None and amount > t.remaining_balance:  # BR-12
+            self.add_error('amount_paid',
+                           f'The payment cannot be more than the remaining balance of ₱{t.remaining_balance}.')
+        if pdate:
+            if pdate < t.transaction_date:  # BR-13
+                self.add_error('payment_date', 'The payment date cannot be earlier than the transaction date.')
+            if pdate > timezone.localdate():
+                self.add_error('payment_date', 'The payment date cannot be later than today.')
         return data

@@ -57,7 +57,7 @@ class TransactionForm(forms.ModelForm):
                                'The direction cannot be changed after a repayment has been recorded.')
         return data
     
-    class RepaymentForm(forms.ModelForm):
+class RepaymentForm(forms.ModelForm):
     class Meta:
         model = Repayment
         fields = ('amount_paid', 'payment_date', 'notes')

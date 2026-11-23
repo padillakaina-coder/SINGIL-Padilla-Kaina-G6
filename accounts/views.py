@@ -5,6 +5,8 @@ from django.shortcuts import render, redirect
 from .decorators import role_required
 from .forms import RegisterForm, ProfileForm
 from .models import User
+from django.db.models import Sum
+from debts.models import Transaction, refresh_statuses
 
 
 def register(request):
@@ -43,13 +45,26 @@ def dashboard(request):
 
 @role_required('USER')
 def user_dashboard(request):
-    return render(request, 'accounts/user_dashboard.html')
+    mine = Transaction.objects.filter(person__user=request.user)
+    refresh_statuses(mine)
+    owed = mine.filter(direction='BORROWED').aggregate(t=Sum('remaining_balance'))['t'] or 0
+    receivable = mine.filter(direction='LENT').aggregate(t=Sum('remaining_balance'))['t'] or 0
+    context = {
+        'total_owed': owed,
+        'total_receivable': receivable,
+        'pending_count': mine.filter(status__status_name='Pending').count(),
+        'overdue_count': mine.filter(status__status_name='Overdue').count(),
+        'recent': mine.select_related('person', 'status')[:5],
+    }
+    return render(request, 'accounts/user_dashboard.html', context)
 
 
 @role_required('ADMIN')
 def admin_dashboard(request):
+    # The admin sees only counts, never anyone's transaction details (SDD 1.3)
     context = {
         'total_users': User.objects.filter(role='USER').count(),
+        'total_transactions': Transaction.objects.count(),
         'users': User.objects.filter(role='USER').order_by('-date_joined')[:10],
     }
     return render(request, 'accounts/admin_dashboard.html', context)

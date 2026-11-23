@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Delete this transaction?</h2>
+<p>This permanently deletes the ₱{{ transaction.principal_amount|floatformat:2 }} transaction with
+   {{ transaction.person.person_name }} and all of its repayments.</p>
+<form method="post">{% csrf_token %}
+  <button type="submit">Yes, delete</button>
+  <a href="{% url 'transaction_detail' transaction.pk %}">Cancel</a>
+</form>
+{% endblock %}

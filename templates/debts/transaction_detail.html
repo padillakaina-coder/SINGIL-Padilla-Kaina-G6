@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Transaction Details</h2>
+<p><strong>Person:</strong> {{ transaction.person.person_name }}</p>
+<p><strong>Type:</strong> {{ transaction.get_direction_display }}</p>
+<p><strong>Principal:</strong> ₱{{ transaction.principal_amount|floatformat:2 }}</p>
+<p><strong>Paid so far:</strong> ₱{{ transaction.amount_paid|floatformat:2 }}</p>
+<p><strong>Remaining balance:</strong> ₱{{ transaction.remaining_balance|floatformat:2 }}</p>
+<p><strong>Transaction date:</strong> {{ transaction.transaction_date|date:"M d, Y" }}</p>
+<p><strong>Due date:</strong> {{ transaction.due_date|date:"M d, Y" }}</p>
+<p><strong>Status:</strong> {{ transaction.status.status_name }}</p>
+<p><strong>Purpose:</strong> {{ transaction.purpose|default:"—" }}</p>
+<p><strong>Notes:</strong> {{ transaction.notes|default:"—" }}</p>
+<p>
+  <a href="{% url 'transaction_edit' transaction.pk %}">Edit</a> |
+  <a href="{% url 'transaction_delete' transaction.pk %}">Delete</a> |
+  <a href="{% url 'transaction_list' %}">Back to list</a>
+</p>
+{% endblock %}

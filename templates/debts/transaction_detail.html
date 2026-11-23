@@ -12,8 +12,22 @@
 <p><strong>Purpose:</strong> {{ transaction.purpose|default:"—" }}</p>
 <p><strong>Notes:</strong> {{ transaction.notes|default:"—" }}</p>
 <p>
+  {% if transaction.remaining_balance > 0 %}<a href="{% url 'repayment_create' transaction.pk %}">Record repayment</a> |{% endif %}
   <a href="{% url 'transaction_edit' transaction.pk %}">Edit</a> |
   <a href="{% url 'transaction_delete' transaction.pk %}">Delete</a> |
   <a href="{% url 'transaction_list' %}">Back to list</a>
 </p>
+
+<h3>Repayment history</h3>
+<table>
+  <tr><th>Date</th><th>Amount</th><th>Type</th><th>Notes</th></tr>
+  {% for r in transaction.repayments.all %}
+  <tr>
+    <td>{{ r.payment_date|date:"M d, Y" }}</td>
+    <td>₱{{ r.amount_paid|floatformat:2 }}</td>
+    <td>{{ r.get_payment_type_display }}</td>
+    <td>{{ r.notes|default:"—" }}</td>
+  </tr>
+  {% empty %}<tr><td colspan="4">No repayments yet.</td></tr>{% endfor %}
+</table>
 {% endblock %}

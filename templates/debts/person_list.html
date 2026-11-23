@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>People</h2>
+<form method="post">{% csrf_token %}
+  {% for field in form %}
+    <label>{{ field.label }}</label>{{ field }}{{ field.errors }}
+  {% endfor %}
+  <button type="submit">Add person</button>
+</form>
+<h3>Your people</h3>
+<table>
+  <tr><th>Name</th><th>Relationship</th><th>Contact</th><th></th></tr>
+  {% for p in people %}
+  <tr>
+    <td>{{ p.person_name }}</td>
+    <td>{{ p.relationship|default:"—" }}</td>
+    <td>{{ p.contact_info|default:"—" }}</td>
+    <td>
+      <form method="post" action="{% url 'person_delete' p.pk %}" onsubmit="return confirm('Delete this person?');">
+        {% csrf_token %}<button>Delete</button>
+      </form>
+    </td>
+  </tr>
+  {% empty %}<tr><td colspan="4">No people yet. Add one above.</td></tr>{% endfor %}
+</table>
+{% endblock %}

@@ -1,10 +1,10 @@
-
 from django.contrib import messages
+from django.db import transaction as db_tx
 from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.decorators import role_required
-from .forms import PersonForm, TransactionForm
-from .models import Person, Transaction, refresh_statuses
+from .forms import PersonForm, RepaymentForm, TransactionForm
+from .models import Person, Repayment, Transaction, refresh_statuses
 
 
 @role_required('USER')
@@ -90,3 +90,33 @@ def transaction_delete(request, pk):
         return redirect('transaction_list')
     return render(request, 'debts/confirm_delete.html', {'transaction': t})
 
+
+@role_required('USER')
+def repayment_create(request, pk):
+    t = get_object_or_404(Transaction.objects.select_related('person'), pk=pk, person__user=request.user)
+    if t.remaining_balance <= 0:  # BR-16
+        messages.error(request, 'This transaction is already fully paid.')
+        return redirect('transaction_detail', pk=t.pk)
+
+    form = RepaymentForm(request.POST or None, transaction=t)
+    if request.method == 'POST':
+        if form.is_valid():
+            with db_tx.atomic():
+                locked = Transaction.objects.select_for_update().get(pk=t.pk)
+                amount = form.cleaned_data['amount_paid']
+                if amount > locked.remaining_balance:
+                    form.add_error('amount_paid', 'The balance changed. Please check the amount.')
+                else:
+                    repayment = form.save(commit=False)
+                    repayment.transaction = locked
+                    # BR-15: FULL only if it equals the balance at the time of payment
+                    repayment.payment_type = (Repayment.FULL if amount == locked.remaining_balance
+                                              else Repayment.PARTIAL)
+                    repayment.save()
+                    locked.remaining_balance -= amount  # BR-14
+                    locked.update_status()
+                    locked.save()
+                    messages.success(request, f'Repayment of ₱{amount} recorded.')
+                    return redirect('transaction_detail', pk=t.pk)
+        messages.error(request, 'Please fix the errors below.')
+    return render(request, 'debts/repayment_form.html', {'form': form, 'transaction': t})

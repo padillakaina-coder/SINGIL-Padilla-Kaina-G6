@@ -22,4 +22,3 @@ urlpatterns = [
     path('', include('accounts.urls')),
     path('', include('debts.urls')),
 ]
-]

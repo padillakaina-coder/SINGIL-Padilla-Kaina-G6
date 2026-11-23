@@ -3,9 +3,26 @@
 <h2>Hello, {{ user.first_name }}!</h2>
 <p><em>Baka Nakalimutan Mo? SINGIL Lang!</em></p>
 <ul>
-  <li>Total Owed: ₱0.00</li>
-  <li>Total Receivable: ₱0.00</li>
+  <li>Total Owed: ₱{{ total_owed|floatformat:2 }}</li>
+  <li>Total Receivable: ₱{{ total_receivable|floatformat:2 }}</li>
+  <li>Pending transactions: {{ pending_count }}</li>
+  <li>Overdue transactions: {{ overdue_count }}</li>
 </ul>
-<p>Transactions, repayments and reminders are coming in the next phases.</p>
-<a href="{% url 'profile' %}">My Profile</a>
+<p>
+  <a href="{% url 'transaction_create' %}">+ Add transaction</a> |
+  <a href="{% url 'transaction_list' %}">All transactions</a> |
+  <a href="{% url 'person_list' %}">People</a>
+</p>
+<h3>Recent transactions</h3>
+<table>
+  <tr><th>Person</th><th>Type</th><th>Balance</th><th>Status</th></tr>
+  {% for t in recent %}
+  <tr>
+    <td><a href="{% url 'transaction_detail' t.pk %}">{{ t.person.person_name }}</a></td>
+    <td>{{ t.direction }}</td>
+    <td>₱{{ t.remaining_balance|floatformat:2 }}</td>
+    <td>{{ t.status.status_name }}</td>
+  </tr>
+  {% empty %}<tr><td colspan="4">No transactions yet.</td></tr>{% endfor %}
+</table>
 {% endblock %}

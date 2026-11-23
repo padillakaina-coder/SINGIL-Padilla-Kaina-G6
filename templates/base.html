@@ -10,7 +10,7 @@
     .msg{padding:10px;border-radius:6px;margin:8px 0}
     .success{background:#e6f4ea;color:#1e6b34}.error{background:#fdecea;color:#a12622}
     .errorlist{color:#a12622;list-style:none;padding:0;margin:2px 0}
-    input{display:block;width:100%;padding:8px;margin:4px 0 10px;box-sizing:border-box}
+    input,select{display:block;width:100%;padding:8px;margin:4px 0 10px;box-sizing:border-box}
     button{padding:8px 16px;cursor:pointer}
     table{width:100%;border-collapse:collapse}td,th{border-bottom:1px solid #eee;padding:6px;text-align:left}
   </style>
@@ -20,6 +20,10 @@
   <strong>SINGIL</strong>
   {% if user.is_authenticated %}
     <a href="{% url 'dashboard' %}">Dashboard</a>
+        {% if user.role == 'USER' %}
+      <a href="{% url 'transaction_list' %}">Transactions</a>
+      <a href="{% url 'person_list' %}">People</a>
+    {% endif %}
     <a href="{% url 'profile' %}">Profile</a>
     <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button>Logout</button></form>
   {% else %}
